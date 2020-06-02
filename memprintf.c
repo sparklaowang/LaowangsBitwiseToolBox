@@ -1,4 +1,7 @@
 #include "memprintf.h"
+#include "ppstr_parser.h"
+#include "cvt.h"
+#include <ctype.h>
 
 #define CUCH fmt[fmt_idx] // Current Char
 
@@ -6,18 +9,8 @@ typedef enum enum_state_memprintf{
   NORMAL,
   ESCAPE,
   BITWIDTH,
+  POSTPROCESS
 } STATE;
-
-typedef union union_muyltitype_memprintf { 
-    uint8_t u8;
-    uint16_t u16;
-    uint32_t u32;
-    int8_t i8;
-    int16_t i16;
-    int32_t i32;
-    double db;
-    float sg;
-} CONVERTER;
 
 void memprintf(char *dest, size_t dest_len, const char *fmt, uint8_t *mem, size_t mem_len)
 {
@@ -29,6 +22,12 @@ void memprintf(char *dest, size_t dest_len, const char *fmt, uint8_t *mem, size_
     int ERR = 0;
     
     int bitwidth; // Used to Record Each Bitwidth
+
+    char PP_STR[1024];
+    int PP_STR_IDX = 0;
+
+    CONVERTER cvt_local;
+    char type_local;
     
     while(CUCH != '\0' && !ERR){
       #ifdef DEBUG
@@ -61,19 +60,47 @@ void memprintf(char *dest, size_t dest_len, const char *fmt, uint8_t *mem, size_
                                   start_bit, 
                                   bitwidth, 
                                   CUCH) >=0) { // Format Success
-              int len = format_next_n_bit_as_type(dest + dest_idx,
-                                        dest_len - dest_idx,
-                                        mem,
-                                        mem_len,
-                                        start_bit, 
-                                        bitwidth, 
-                                        CUCH);
+              if(convert_next_bit_to_cvt(&cvt_local, mem, mem_len, start_bit, bitwidth)) { // Convert Failed;
+                  ERR = 1;
+                  break;
+              }
+              type_local = CUCH;
               start_bit += bitwidth;
-              dest_idx += len;
-              sta = NORMAL;
+              if(fmt[fmt_idx + 1] == '[') {
+                  memset(PP_STR, 0, sizeof(PP_STR));
+                  PP_STR_IDX = 0;
+                  sta = POSTPROCESS;
+              } else {
+                  dest_idx += format_cvt_as_type(dest + dest_idx,
+                                                 dest_len - dest_idx,
+                                                 cvt_local,
+                                                 type_local);
+                  sta = NORMAL;
+              }
           } else {
               ERR = 1;
               break;
+          }
+      break;
+      case(POSTPROCESS):
+          if(CUCH == '[') {
+              //Start
+          } else if(isdigit(CUCH) || CUCH == '.' || CUCH == '-') {
+              //Content
+              PP_STR[PP_STR_IDX] = CUCH;
+              PP_STR_IDX ++;
+          } else if(CUCH == ']'){
+              //End
+              double res = 0;
+              if(post_process_cvt_by_str(&cvt_local, PP_STR, type_local)){
+                ERR = 1;
+                break;
+              }
+              dest_idx += format_cvt_as_type(dest + dest_idx,
+                                             dest_len - dest_idx,
+                                             cvt_local, 
+                                             type_local);
+              sta = NORMAL;
           }
       break;
       }
@@ -84,32 +111,11 @@ void memprintf(char *dest, size_t dest_len, const char *fmt, uint8_t *mem, size_
     }
 }
 
-int format_next_n_bit_as_type(char *dest, 
+int format_cvt_as_type(char *dest, 
                               size_t dest_len, 
-                              uint8_t *mem, 
-                              size_t mem_len, 
-                              int bs, 
-                              int bw, 
+                              CONVERTER cvt,
                               char type) {
     char tmp_buf[1024];
-    CONVERTER cvt;
-    memset(&cvt, 0, sizeof(cvt));
-    int idx;
-    for(idx = 0; idx < bw; idx ++) {
-        int this_bit;
-        this_bit = GET_NTH_BIT_OF_MEM(mem, mem_len, bs + idx);
-        printf("%d bit = %d \n", idx, this_bit);
-        if(this_bit < 0) { //GET_WRONG
-            return -3;
-        }
-        if(SET_NTH_BIT_OF_MEM((void *)&cvt, 
-                              sizeof(cvt), 
-                              idx, 
-                              this_bit) < 0) { //SET_WRONG
-            return -4;
-        }
-
-    }
     printf("%d <=Cvt=>%f \n", cvt.u32, cvt.sg);
     memset(tmp_buf, 0, sizeof(tmp_buf));
     switch(type){
@@ -157,14 +163,16 @@ int try_format_next_n_bit_as_type(uint8_t *mem,
                                   int bw, 
                                   char type){
     char dummy_dest[1024];
-    return format_next_n_bit_as_type(dummy_dest,
+    CONVERTER cvt;
+    convert_next_bit_to_cvt(&cvt,
+                            mem,
+                            mem_len,
+                            bs,
+                            bw);
+    return format_cvt_as_type(dummy_dest,
                                      1024,
-                                     mem,
-                                     mem_len,
-                                     bs,
-                                     bw,
-                                     type
-                                     );
+                                     cvt,
+                                     type);
 }
 
 int GET_NTH_BIT_OF_MEM(void *mem, size_t mem_len, int idx) {
@@ -204,6 +212,30 @@ int SET_NTH_BIT_OF_MEM(void *mem, size_t mem_len, int idx, int value) {
     } else {
       // Set A One
       ((uint8_t*)mem)[byte_idx] |= bit_mask;
+    }
+    return 0;
+}
+
+int convert_next_bit_to_cvt(CONVERTER *cvt,
+                            uint8_t *mem, 
+                            size_t mem_len,
+                            int bs,
+                            int bw){
+    memset(cvt, 0, sizeof(CONVERTER));
+    int idx;
+    for(idx = 0; idx < bw; idx ++) {
+        int this_bit;
+        this_bit = GET_NTH_BIT_OF_MEM(mem, mem_len, bs + idx);
+        printf("%d bit = %d \n", idx, this_bit);
+        if(this_bit < 0) { //GET_WRONG
+            return -3;
+        }
+        if(SET_NTH_BIT_OF_MEM((void *)(cvt), 
+                              sizeof(CONVERTER), 
+                              idx, 
+                              this_bit) < 0) { //SET_WRONG
+            return -4;
+        }
     }
     return 0;
 }

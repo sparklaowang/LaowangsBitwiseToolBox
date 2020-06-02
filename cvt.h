@@ -1,5 +1,6 @@
 #ifndef CVT_H
 #define CVT_H
+#include <stdint.h>
 typedef union union_muyltitype_memprintf { 
     uint8_t u8;
     uint16_t u16;

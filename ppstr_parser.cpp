@@ -37,6 +37,7 @@ int parse_ppstr(const char *ppstr, T raw, double *res)
                  return -1;
             break;
         }
+        ps ++;
     }
     (*res) = in;
     return 0;

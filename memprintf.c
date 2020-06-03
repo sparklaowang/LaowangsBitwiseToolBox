@@ -85,17 +85,21 @@ void memprintf(char *dest, size_t dest_len, const char *fmt, uint8_t *mem, size_
       case(POSTPROCESS):
           if(CUCH == '[') {
               //Start
-          } else if(isdigit(CUCH) || CUCH == '.' || CUCH == '-') {
+          } else if(isdigit(CUCH) || CUCH == '.' || CUCH == '-'
+                    || CUCH == 'a' || CUCH == 's'
+                    || CUCH == 'm' || CUCH == 'd') {
               //Content
               PP_STR[PP_STR_IDX] = CUCH;
               PP_STR_IDX ++;
           } else if(CUCH == ']'){
               //End
               double res = 0;
+              printf("BEFORE: %s PP, cvt = %d %f\n", PP_STR, cvt_local.i32, cvt_local.sg);
               if(post_process_cvt_by_str(&cvt_local, PP_STR, type_local)){
                 ERR = 1;
                 break;
               }
+              printf("AFTER: PP, cvt = %d %f\n", cvt_local.i32, cvt_local.sg);
               dest_idx += format_cvt_as_type(dest + dest_idx,
                                              dest_len - dest_idx,
                                              cvt_local, 
@@ -116,7 +120,6 @@ int format_cvt_as_type(char *dest,
                               CONVERTER cvt,
                               char type) {
     char tmp_buf[1024];
-    printf("%d <=Cvt=>%f \n", cvt.u32, cvt.sg);
     memset(tmp_buf, 0, sizeof(tmp_buf));
     switch(type){
     case('d'):
@@ -226,7 +229,6 @@ int convert_next_bit_to_cvt(CONVERTER *cvt,
     for(idx = 0; idx < bw; idx ++) {
         int this_bit;
         this_bit = GET_NTH_BIT_OF_MEM(mem, mem_len, bs + idx);
-        printf("%d bit = %d \n", idx, this_bit);
         if(this_bit < 0) { //GET_WRONG
             return -3;
         }

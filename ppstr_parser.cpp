@@ -2,6 +2,7 @@
 #include <cstring>
 #include <functional>
 
+#include <cctype>
 
 template<typename T>
 int parse_ppstr(const char *ppstr, T raw, double *res)
@@ -77,7 +78,6 @@ int post_process_cvt_by_str(CONVERTER *cvt, char *PP_STR, char type){
     break;
     default:
         return -5;
-    break;
     }
     return 0;
 }

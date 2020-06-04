@@ -3,6 +3,6 @@
 
 #include "cvt.h"
 
-int post_process_cvt_by_str(union_muyltitype_memprintf *cvt, char *PP_STR, char type);
+int post_process_cvt_by_str(CONVERTER *cvt, char *PP_STR, char type);
 
 #endif

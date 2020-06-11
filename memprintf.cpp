@@ -93,8 +93,14 @@ void memprintf(char *dest, size_t dest_len, const char *fmt, uint8_t *mem, size_
           } else if(CUCH == ']'){
               //End
               double res = 0;
+              // Temporary: Alway Format CVT as float when Post Proces
+              if(type_local == 'u') {
+                  cvt_local.sg = static_cast<float>(cvt_local.u32);
+              } else if(type_local == 'd') {
+                  cvt_local.sg = static_cast<float>(cvt_local.i32);
+              }
               printf("BEFORE: %s PP, cvt = %d %f\n", PP_STR, cvt_local.i32, cvt_local.sg);
-              if(post_process_cvt_by_str(&cvt_local, PP_STR, type_local)){
+              if(post_process_cvt_by_str(&cvt_local, PP_STR, 'f')){
                 ERR = 1;
                 break;
               }
@@ -102,7 +108,7 @@ void memprintf(char *dest, size_t dest_len, const char *fmt, uint8_t *mem, size_
               dest_idx += format_cvt_as_type(dest + dest_idx,
                                              dest_len - dest_idx,
                                              cvt_local, 
-                                             type_local);
+                                             'f');
               sta = NORMAL;
           }
       break;
@@ -125,23 +131,23 @@ int format_cvt_as_type(char *dest,
     case('D'):  
         //signed int
         // TODO: This Do have some problem
-        sprintf(tmp_buf, "%d", cvt.i32);
+        sprintf(tmp_buf, "%g", static_cast<double>(cvt.i32));
     break;
     case('u'):
     case('U'):  
         //Unsigned int
-        sprintf(tmp_buf, "%d", cvt.u32);
+        sprintf(tmp_buf, "%g", static_cast<double>(cvt.u32));
     break;
     case('f'):
     case('F'):  
         //Float
-        sprintf(tmp_buf, "%f", cvt.sg);
+        sprintf(tmp_buf, "%g", static_cast<double>(cvt.sg));
 
     break;
     case('g'):
     case('G'):
         //Double
-        sprintf(tmp_buf, "%g", cvt.sg);
+        sprintf(tmp_buf, "%g", static_cast<double>(cvt.sg));
     break;
     case('N'):
     case('n'):

@@ -3,7 +3,48 @@
 #include <ctype.h>
 
 #define CUCH fmt[fmt_idx] // Current Char
+uint16_t UINT8_2_UINT16(uint8_t low, uint8_t high) {
+  return (static_cast<uint16_t>(high) << 8)  + low ;
+}
 
+uint16_t UINT8_2_UINT32(uint8_t b0, uint8_t b1, uint8_t b2, uint8_t b3) {
+  return ((static_cast<uint32_t>(b3) << 24 ) +
+  (static_cast<uint32_t>(b2) << 16 ) +
+  (static_cast<uint32_t>(b1) << 8 ) +
+  b0);
+}
+
+uint8_t HIGH8_OF_UINT16(uint16_t u16) {
+  return (static_cast<uint8_t>(u16 >> 8));
+}
+
+uint8_t LOW8_OF_UINT16(uint16_t u16) {
+  return (static_cast<uint8_t>(u16 & 0x00FF));
+}
+
+uint8_t I_BYTE_OF_U32(uint32_t u32, size_t i) {
+  return (static_cast<uint8_t>(u32 >> (i * 8)) & 0xFF);
+}
+
+uint8_t I_BYTE_OF_U16(uint16_t u16, size_t i) {
+  return (static_cast<uint8_t>(u16 >> (i * 8)) & 0xFF);
+}
+
+void UINT16_2_UINT8ARRAY(uint16_t u16, uint8_t *u8_arr) {
+  u8_arr[0] = I_BYTE_OF_U16(u16, 0);
+  u8_arr[1] = I_BYTE_OF_U16(u16, 1);
+}
+
+uint16_t UINT8ARRAY_2_UINT16(uint8_t *u8_arr) {
+  return UINT8_2_UINT16(u8_arr[0], u8_arr[1]);
+}
+
+void UINT32_2_UINT8ARRAY(uint32_t u32, uint8_t *u8_arr) {
+  u8_arr[0] = I_BYTE_OF_U16(u32, 0);
+  u8_arr[1] = I_BYTE_OF_U16(u32, 1);
+  u8_arr[2] = I_BYTE_OF_U16(u32, 2);
+  u8_arr[3] = I_BYTE_OF_U16(u32, 3);
+}
 typedef enum enum_state_memprintf{
   NORMAL,
   ESCAPE,

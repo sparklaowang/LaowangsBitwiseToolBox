@@ -11,6 +11,24 @@
 extern "C"{
 #endif
 
+uint16_t UINT8_2_UINT16(uint8_t low, uint8_t high);
+
+uint16_t UINT8_2_UINT32(uint8_t b0, uint8_t b1, uint8_t b2, uint8_t b3);
+
+uint8_t HIGH8_OF_UINT16(uint16_t u16);
+
+uint8_t LOW8_OF_UINT16(uint16_t u16);
+
+uint8_t I_BYTE_OF_U32(uint32_t u32, size_t i);
+
+uint8_t I_BYTE_OF_U16(uint16_t u16, size_t i);
+
+void UINT16_2_UINT8ARRAY(uint16_t u16, uint8_t *u8_arr);
+
+uint16_t UINT8ARRAY_2_UINT16(uint8_t *u8_arr);
+
+void UINT32_2_UINT8ARRAY(uint32_t u32, uint8_t *u8_arr);
+
 void memprintf(char *dest, size_t dest_len, const char *fmt, uint8_t *mem, size_t mem_len);
 
 int GET_NTH_BIT_OF_MEM(void *mem, size_t mem_len, int idx);

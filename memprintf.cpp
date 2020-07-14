@@ -22,6 +22,14 @@ uint8_t LOW8_OF_UINT16(uint16_t u16) {
   return (static_cast<uint8_t>(u16 & 0x00FF));
 }
 
+uint8_t I_BYTE_OF_U64(uint64_t u64, size_t i) {
+  return (static_cast<uint8_t>(u64 >> (i * 8)) & 0xFF);
+}
+
+uint16_t I_WORD_OF_U64(uint64_t u64, size_t i) {
+  return (static_cast<uint16_t>(u64 >> (i*16) & 0x0FFFF));
+}
+
 uint8_t I_BYTE_OF_U32(uint32_t u32, size_t i) {
   return (static_cast<uint8_t>(u32 >> (i * 8)) & 0xFF);
 }
@@ -37,6 +45,14 @@ void UINT16_2_UINT8ARRAY(uint16_t u16, uint8_t *u8_arr) {
 
 uint16_t UINT8ARRAY_2_UINT16(uint8_t *u8_arr) {
   return UINT8_2_UINT16(u8_arr[0], u8_arr[1]);
+}
+
+int CONV_NEXT_I_BYTE(uint8_t *buf, size_t len) {
+  int sum = 0;
+  for(int i = 0; i < len; len ++){
+     sum += sum << (i * 8);
+  }
+  return sum;
 }
 
 void UINT32_2_UINT8ARRAY(uint32_t u32, uint8_t *u8_arr) {

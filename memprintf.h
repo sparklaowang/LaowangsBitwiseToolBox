@@ -19,6 +19,10 @@ uint8_t HIGH8_OF_UINT16(uint16_t u16);
 
 uint8_t LOW8_OF_UINT16(uint16_t u16);
 
+uint8_t I_BYTE_OF_U64(uint64_t u64, size_t i);
+
+uint16_t I_WORD_OF_U64(uint64_t u64, size_t i);
+
 uint8_t I_BYTE_OF_U32(uint32_t u32, size_t i);
 
 uint8_t I_BYTE_OF_U16(uint16_t u16, size_t i);
@@ -33,6 +37,8 @@ void memprintf(char *dest, size_t dest_len, const char *fmt, uint8_t *mem, size_
 
 int GET_NTH_BIT_OF_MEM(void *mem, size_t mem_len, int idx);
 int SET_NTH_BIT_OF_MEM(void *mem, size_t mem_len, int idx, int value);
+
+int CONV_NEXT_I_BYTE(uint8_t *buf, size_t);
 
 int try_format_next_n_bit_as_type(uint8_t *mem, size_t mem_len, int bs, int bw, char type);
 /*

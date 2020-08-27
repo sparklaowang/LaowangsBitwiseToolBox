@@ -50,7 +50,7 @@ uint16_t UINT8ARRAY_2_UINT16(uint8_t *u8_arr) {
 int CONV_NEXT_I_BYTE(uint8_t *buf, size_t len) {
   int sum = 0;
   for(int i = 0; i < len; len ++){
-     sum += sum << (i * 8);
+     sum += buf[i] << (i * 8);
   }
   return sum;
 }
